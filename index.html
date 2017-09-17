@@ -1,25 +1,80 @@
 <!DOCTYPE html>
 <html>
+<script src="js/createjs-2015.11.26.min.js"></script>
+<script src="js/jquery-3.1.1.min.js"></script>
+<script src="js/vue.min.js"></script>
+<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
 <head>
-<style>
-h2 {
-    position: absolute;
-    left: 1620px;
-    top: 990px;
-}
-</style>
 </head>
 <body background="https://i.imgur.com/8BOmHBN.jpg">
  <font color="#00ffff"><h1>飛特網路電台</h1></font>
- <p><a href="http://phate.io/">點我前往飛特網路電台網站</a></p>
-<h2>
- <audio autoplay id="phate">
-  <source src="http://phate.io/listen.ogg?_=1505533200848" type="audio/ogg"> 
+<div id="app">
+ <audio id="phate" controll autoplay>
+  <source src="http://phate.io/listen.ogg?_=1505533200848" type="audio/ogg">
  </audio>
-</h2>
+  <font color="#00ffff"><div>人數: {{listeners}}</div></font>
+  <ul>
+    <li v-for="song in playlist">
+	  <font color="#00ffff">
+      <div>
+        {{song.title}}-{{song.artist}}
+      </div>
+	  </font>
+    </li>
+  </ul>
+</div>
+ <script>
+  window.onload = function() {
+  var backgroundAudio=document.getElementById("phate");
+  backgroundAudio.volume=0.2;
+  ;(function($){
+  mySong=document.getElementById("phate");
+  mySong.volume=0.2;
+  setVolume = function(phate,vol) {
+  sounds[phate].volume = 0.33;
+}
+})(jQuery);
+}
+ </script>
 </body>
 <script>
-  var audio = document.getElementById("phate");
-  audio.volume = 0.2;
+  const corsurl =
+  "https://script.google.com/macros/s/AKfycbwQvEo6s_UXpU7BsNP9ibDPnOw78N-galEJKZDPLqiPo46l4G-i/exec";
+/*
+Google apps script
+function doGet(e) {
+  var response = UrlFetchApp.fetch(e.parameter.url)
+  return ContentService.createTextOutput(response.getContentText())
+}
+*/
+
+var app = new Vue({
+  el: "#app",
+  data: {
+    listeners: 0,
+    playlist: []
+  },
+  created: function() {
+    var self = this;
+    function update() {
+      corsget("https://phate.io/playlist.json").then(d => {
+        self.playlist = d.data;
+      });
+      corsget("https://phate.io/status.json").then(d => {
+        self.listeners = d.data.listeners;
+      });
+    }
+    setInterval(update, 20000);
+    update();
+  }
+});
+
+function corsget(url) {
+  return axios.get(corsurl, {
+    params: {
+      url: url
+    }
+  });
+}
 </script>
 </html>
